@@ -1,0 +1,49 @@
+version: 1
+disable_existing_loggers: false
+
+# (참고) 경로는 .env에서 설정합니다.
+#   SERVICE_LOG_PATH=/var/log/ai4rm/service.log   # Linux 예시
+#   AUDIT_LOG_PATH=/var/log/ai4rm/audit.log
+
+formatters:
+  simple:
+    format: '[%(asctime)s] [%(levelname)s] %(name)s - %(message)s'
+    datefmt: '%Y-%m-%d %H:%M:%S'
+  json:
+    format: '{"timestamp": "%(asctime)s", "level": "%(levelname)s", "logger": "%(name)s", "message": "%(message)s", "pathname": "%(pathname)s", "lineno": %(lineno)d, "funcName": "%(funcName)s"}'
+    datefmt: '%Y-%m-%dT%H:%M:%S'
+
+handlers:
+  console:
+    class: logging.StreamHandler
+    level: INFO
+    formatter: simple
+    stream: ext://sys.stdout
+
+  service_file:
+    class: logging.FileHandler
+    level: INFO
+    formatter: json
+    filename: ${SERVICE_LOG_PATH}
+    encoding: utf-8
+
+  audit_file:
+    class: logging.FileHandler
+    level: INFO
+    formatter: json
+    filename: ${AUDIT_LOG_PATH}
+    encoding: utf-8
+
+root:
+  level: INFO
+  handlers: [console, service_file]
+
+loggers:
+  ai4rm:
+    level: INFO
+    handlers: [console, service_file]
+    propagate: no
+  audit:
+    level: INFO
+    handlers: [audit_file]
+    propagate: no
