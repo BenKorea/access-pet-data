@@ -3,7 +3,7 @@ project:
   output-dir: docs
 
 website:
-  title: "Quarto Website Template"
+  title: "R Python Quarto Website Template"
   navbar:
     left:
       - href: index.qmd
@@ -16,4 +16,5 @@ format:
       - brand
     css: styles.css
     toc: true
+    include-after-body: utterances.html
 
