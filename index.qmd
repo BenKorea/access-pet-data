@@ -1,0 +1,27 @@
+---
+title: "R Python Quarto Template"
+author: BenKorea
+description: "R Python Quarto-website 프로젝트 겸용 Template"
+date: "2025-08-01"
+date-modified: last-modified
+---
+
+
+```{r}
+#| label: setup
+#| echo: false
+#| message: false
+
+# 프로젝트에 필요한 패키지들 일괄 호출
+library(here)
+library(logger)
+
+# ./src/common/logger.R 호출
+invisible(lapply(
+  list.files(here::here("src", "common"), pattern = "\\.R$", full.names = TRUE),
+  source,
+  encoding = "UTF-8"
+))
+
+```
+
