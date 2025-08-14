@@ -1,9 +1,10 @@
 version: 1
 disable_existing_loggers: false
 
-# (참고) 경로는 .env에서 설정합니다.
-#   SERVICE_LOG_PATH=/var/log/ai4rm/service.log   # Linux 예시
-#   AUDIT_LOG_PATH=/var/log/ai4rm/audit.log
+# (참고) 경로와 프로젝트명은 .env에서 설정합니다.
+#   PROJECT_NAME=myproject
+#   SERVICE_LOG_PATH=/var/log/myproject/service.log
+#   AUDIT_LOG_PATH=/var/log/myproject/audit.log
 
 formatters:
   simple:
@@ -16,34 +17,37 @@ formatters:
 handlers:
   console:
     class: logging.StreamHandler
-    level: INFO
+    level: NOTSET
     formatter: simple
     stream: ext://sys.stdout
 
   service_file:
     class: logging.FileHandler
-    level: INFO
+    level: NOTSET
     formatter: json
     filename: ${SERVICE_LOG_PATH}
     encoding: utf-8
+    delay: true
 
   audit_file:
     class: logging.FileHandler
-    level: INFO
+    level: NOTSET
     formatter: json
     filename: ${AUDIT_LOG_PATH}
     encoding: utf-8
+    delay: true
 
 root:
   level: INFO
   handlers: [console, service_file]
 
 loggers:
-  ai4rm:
+  ${PROJECT_NAME}:
     level: INFO
-    handlers: [console, service_file]
-    propagate: no
+    propagate: true   # 콘솔/서비스 로그는 루트 핸들러로 전달
+
+  # 개인정보보호정책: audit_log는 전용 파일에만 기록, 절대 stdout에 출력하지 않음
   audit:
     level: INFO
     handlers: [audit_file]
-    propagate: no
+    propagate: false
