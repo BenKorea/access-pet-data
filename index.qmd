@@ -6,6 +6,7 @@ date: "2025-08-01"
 date-modified: last-modified
 ---
 
+
 ```{r}
 #| label: setup
 #| echo: false
@@ -16,51 +17,14 @@ library(here)
 library(dotenv)
 library(logger)
 
-# ./src/common/logger.R 호출
+# ./src/R/logger.R 호출
 invisible(lapply(
-  list.files(here::here("src", "common"), pattern = "\\.R$", full.names = TRUE),
+  list.files(here::here("src", "R"), pattern = "\\.R$", full.names = TRUE),
   source,
   encoding = "UTF-8"
 ))
 
 ```
 
-```{r}
-#| label: setup-logger
-#| echo: true
-#| message: true
 
-# 1. logger.R 로드
-source("mylogger/R/logger.R")
 
-# 2. 테스트용 환경변수 설정
-Sys.setenv(
-  PROJECT_NAME = "Template",
-  LOG_LEVEL = "DEBUG",
-  SERVICE_LOG_PATH = "logs/service.log",
-  AUDIT_LOG_PATH = "logs/audit.log"
-)
-
-# 3. 테스트용 로그 폴더 생성 (없으면)
-dir.create("logs", showWarnings = FALSE)
-
-# 4. 로깅 초기화
-setup_logging()
-
-# 5. 기본 로그 작성
-log_debug("이것은 DEBUG 메시지입니다.")
-log_info("이것은 INFO 메시지입니다.")
-log_warn("이것은 WARN 메시지입니다.")
-log_error("이것은 ERROR 메시지입니다.")
-log_critical("이것은 CRITICAL 메시지입니다.")
-
-# 6. 감사 로그 작성
-audit_log("테스트_감사로그", detail = list(file = "test.txt", status = "성공"))
-
-# 7. 현재 로깅 레벨 확인
-get_level()
-
-# 8. 로거 종료
-shutdown_logging()
-
-```
