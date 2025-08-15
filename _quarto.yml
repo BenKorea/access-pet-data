@@ -6,7 +6,7 @@ project:
     - "!*.md"
   
 website:
-  title: "R Python Quarto Website Template"
+  title: "Access PET Data"
   navbar:
     left:
       - href: index.qmd

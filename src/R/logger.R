@@ -30,6 +30,10 @@ log_layout(layout_glue_generator(
   format = '[{format(time, "%Y-%m-%d %H:%M:%S")}] [{toupper(level)}] [{PROJECT_NAME}] {msg}'
 ))
 
+## Python과 함수명 통일: log_critical 래퍼 추가
+log_critical <- function(msg) {
+  log_fatal(msg)
+}
 # 레벨 설정
 valid_levels <- c("CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG")
 if (!LOG_LEVEL %in% valid_levels) LOG_LEVEL <- "DEBUG"
