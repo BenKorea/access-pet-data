@@ -1,12 +1,419 @@
 ---
-title: "Blog"
-listing:
-  contents: posts
-  sort: "date-modified desc"
-  type: default
-  categories: true
-  sort-ui: true
-  filter-ui: true
-page-layout: full
-title-block-banner: true
+title: "Access PET DATA"
+author: 김병일
+description: "Access 구현 핵의학과 PET 판독/준비기록"
+date: "2025-07-23"
+date-modified: last-modified
 ---
+
+
+
+
+```{r}
+#| label: setup
+#| echo: false
+#| message: false
+
+# 프로젝트에 필요한 패키지들 일괄 호출
+library(here)
+library(dotenv)
+library(logger)
+library(data.table)
+library(ggplot2)
+
+# ./src/R/logger.R 호출
+invisible(lapply(
+  list.files(here::here("src", "R"), pattern = "\\.R$", full.names = TRUE),
+  source,
+  encoding = "UTF-8"
+))
+
+```
+
+
+```{r}
+#| label: data-import
+#| echo: false
+#| message: false
+#| warning: false
+
+if (!dir.exists("./data/rds")) {
+  dir.create("./data/rds", recursive = TRUE)
+}
+if (file.exists("./data/rds/readings_ocs.rds")) {
+  readings_ocs <- readRDS("./data/rds/readings_ocs.rds")
+} else {
+  readings_ocs <- my_read_excel_dir(directory = "./data/raw/readings_ocs/", pattern = "\\.xlsx$")
+  readings_ocs[, PtID := 환자번호]
+  readings_ocs[, ReqDate := as.Date(처방일자)]
+  readings_ocs[, ExamDate := as.Date(실시일시)]
+  saveRDS(readings_ocs, "./data/rds/readings_ocs.rds")
+}
+
+if (file.exists("./data/rds/readings_pacs.rds")) {
+  readings_pacs <- readRDS("./data/rds/readings_pacs.rds")
+} else {
+  readings_pacs <- my_read_excel_dir(directory = "./data/raw/readings_pacs/", pattern = "\\.xlsx$")
+  readings_pacs[, PtID := ID]
+  readings_pacs[, ReqDate := as.Date(as.numeric(`Req. Date`), origin = "1899-12-30")]
+  readings_pacs[, ExamDate := as.Date(as.numeric(`Study Date`), origin = "1899-12-30")]
+  saveRDS(readings_pacs, "./data/rds/readings_pacs.rds")
+}
+
+if (file.exists("./data/rds/readings_access.rds")) {
+  readings_access <- readRDS("./data/rds/readings_access.rds")
+} else {
+  readings_access <- my_read_excel_dir(directory="./data/raw/readings_access/", pattern = "\\.xlsx$")
+  readings_access[, ExamDate := as.Date(as.numeric(`ExamDate`), origin = "1899-12-30")]
+  saveRDS(readings_access, "./data/rds/readings_access.rds")
+}
+
+# OCS PET 준비기록
+if (file.exists("./data/rds/preparations_ocs.rds")) {
+  preparations_ocs <- readRDS("./data/rds/preparations_ocs.rds")
+} else {
+  preparations_ocs <- my_read_excel_dir("./data/raw/preparations_ocs/", pattern = "\\.xlsx$")
+  preparations_ocs[, PtID := 환자번호]
+  preparations_ocs[, ExamDate := as.Date(검사일자)]
+  saveRDS(preparations_ocs, "./data/rds/preparations_ocs.rds")
+}
+
+# Access PET 준비기록
+if (file.exists("./data/rds/preparations_access.rds")) {
+  preparations_access <- readRDS("./data/rds/preparations_access.rds")
+} else {
+  preparations_access <- my_read_excel_dir(directory="./data/raw/preparations_access/", pattern = "\\.xlsx$")
+  preparations_access[, ExamDate := as.Date(as.numeric(`ExamDate`), origin = "1899-12-30")]
+  saveRDS(preparations_access, "./data/rds/preparations_access.rds")
+}
+```
+## PET 판독/준비기록 PACS/OCS 이관
+
+원자력병원 핵의학과에 PET이 설치된 당시에 판독은 Microsoft사의 Access database에 감마와 PET 판독을 입력하는 시스템을 사용했습니다. Access 상의 최초 PET ExamDate는 `1997-07-16`입니다. 50년사에는 PET 기동식이 `1997-08-02`로 기록되어 있으며 날짜를 비교해보면 기동식 이전에 판독입력은 약 2주전부터 이미 시작되었습니다.
+
+2000년 경에 EMR (Electric Medical Record)과 함께 OCS(Order Communication System)이 도입되었습니다. 이 때부터 오더가 있는 공식적인 판독은 OCS에 입력을 하게 됩니다. 하지만 당시에는 연구목적의 PET 등은 오더가 대부분 없었기 때문에 이런 경우들은 Access에 입력을 하게 됩니다. 따라서 OCS상의 최초 판독일은 `2000-07-04`이지만 Access 판독은 `2009-07-09`까지 존재합니다.
+
+2003년 경에는 PACS가 도입됩니다. 이때부터 판독입력은 PACS에 직접 입력하게 되지만 결국은 OCS에도 저장되므로 판독기록의 보존이라는 측면에서는 차이가 없는셈입니다. 다만 Legacy PET Imaging Archive System 이외에 공식적인 PET(/CT) 저장이 새로 생겼다는 차이가 있습니다. 사실 Legacy PET Imaging Archive System은 magnetic tape, optical magnetic disk, CD 등으로 변모해왔지만 오랜시간이 경과하여 오류률이 높아서 실제 사용이 어렵기 때문에 PACS에 PET/CT image가 저장된다는 것은 상당한 장점이 있습니다.
+
+마지막으로 NM miniPACS에도 영상기록이 보존되어 있습니다. 공식적으로 저장되기 시작한 날짜는 확인이 필요합니다. 영상보관면에서는 PET sinogram은 아니지만 reconstructed low data가 저장되어 있으므로 그러한 장점이 있습니다. 한가지 명확하지 않은 것은 reseach PET data의 경우 NM miniPACS에 저장하는 것도 고려됩니다.
+```{r}
+#| label: ocs-pet-readings
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-width: 10
+#| fig-height: 6
+
+log_info("OCS 총판독건수: {nrow(readings_ocs)}건")
+
+# outside reading은 제외 (프로젝트 지침)
+readings_ocs <- readings_ocs[!grepl("outside", 항목명, ignore.case = TRUE)]
+
+# ExamDate가 NA인 경우 readings_pacs에서 복사하여 채우기
+readings_ocs_na <- readings_ocs[is.na(ExamDate)]
+log_debug("OCS 판독 중 ExamDate NA: {nrow(readings_ocs_na)}건")
+
+if (nrow(readings_ocs_na) > 0) {
+  # 사용자정의함수로 ExamDate 복사
+  readings_ocs_na_copied <- my_copy_examdate(
+    na_data = readings_ocs_na,
+    reference_data = readings_pacs
+  )
+  
+  # NA가 아닌 데이터와 병합
+  readings_ocs_not_na <- readings_ocs[!is.na(ExamDate)]
+  readings_ocs <- rbind(readings_ocs_not_na, readings_ocs_na_copied)
+  log_debug("ExamDate 복사 후 총 행 수: {nrow(readings_ocs)}")
+}
+
+# 분석날짜를 준비기록과 일치하도록 2016-12-31로 제한
+readings_ocs <- readings_ocs[ExamDate < as.Date("2016-12-31") & ExamDate >= as.Date("2000-07-04")]
+log_info("OCS PET 판독 최종 데이터: {nrow(readings_ocs)}건")
+
+# 사용자정의 함수로 월별건수 시각화
+my_plot_monthly_counts(readings_ocs, ExamDate, "OCS PET판독")
+
+rm(readings_ocs_na, readings_ocs_not_na, readings_ocs_na_copied)
+
+```
+
+## OCS PET 판독건수
+
+-   2017년 경에 전산팀으로부터 받은 자료 (이하 동문)
+-   `2000-07-04`부터 OCS에 PET 판독이 입력되기 시작함
+-   OCS PET 준비기록 자료가 `2016-12-31`까지여서 OCS PET 판독도 `2016-12-31`까지 분석 포함
+-   외부판독은 제외함.
+-   OCS PET 판독건수는 `r nrow(readings_ocs)`건
+-   2006\~2007년이 비어있으며 전달받은 파일의 오류로 판단됨.
+
+```{r}
+#| label: pacs-pet-readings
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-width: 10
+#| fig-height: 6
+
+log_info("reading_pacs 총건수: {nrow(readings_pacs)}건")
+
+# outside PET이 포함된 경우를 제외 (프로젝트 지침)
+readings_pacs <- readings_pacs[!grepl("outside", `Req. Name`, ignore.case = TRUE)]
+log_info("outside PET 제외 후: {nrow(readings_pacs)}건")
+
+# ExamDate가 NA인 경우 readings_ocs에서 복사하여 채우기
+readings_pacs_na <- readings_pacs[is.na(ExamDate)]
+log_info("PACS 판독 중 ExamDate NA: {nrow(readings_pacs_na)}건")
+
+reading_pacs <-readings_pacs[!is.na(ExamDate)]
+log_info("PACS 판독 중 ExamDate NA 제외건수: {nrow(readings_pacs)}건")
+
+
+# 분석 기간으로 제한 (2003-05-12 ~ 2016-12-31)
+readings_pacs <- readings_pacs[ExamDate >= as.Date("2003-05-12") & ExamDate <= as.Date("2016-12-31")]
+log_info("PACS PET 2003-05-12 ~ 2016-12-31 건수수: {nrow(readings_pacs)}건")
+
+pacs_unique_keys <- unique(readings_pacs[, .(PtID, ExamDate)])
+
+
+# 사용자정의 함수로 월별건수 시각화 (표준화된 컬럼명 사용)
+my_plot_monthly_counts(pacs_unique_keys, ExamDate, "PACS PET검사")
+
+# rm(readings_pacs_na, readings_pacs_not_na, readings_pacs_na_copied)
+
+```
+
+## PACS PET 검사기록
+
+-   2017년 경에 전산팀으로부터 받은 자료
+-   `2003-05-12`부터 PACS에 PET 영상이 등록되기 시작함
+-   외부판독은 역시 제외함
+-   OCS상의 PET 준비기록이 `2016-12-31`까지 여서 판독기록도 `2016-12-31`까지만을 대상으로 함
+-   2006\~2007년 데이터가 온전해 보임.
+
+```{r}
+#| label: ocs-pet-preparations
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-width: 10
+#| fig-height: 6
+
+
+# na 검사하는 코드
+preparations_ocs_na <- preparations_ocs[is.na(ExamDate)]
+# ExamDate가 NA인 경우 ReqDate가 원래 없어 readings_ocs에서 복사하여 채우기가 안됨
+# 또한 파일은 있지만 아래의 항목이 없으면 제외
+preparations_ocs <- preparations_ocs[!is.na(WEIGHT) | !is.na(방사화합물) | !is.na(RADCOMPNDETC)]
+
+my_plot_monthly_counts(preparations_ocs, ExamDate, "OCS 준비기록")
+rm(preparations_ocs_na)
+```
+
+## OCS PET 준비기록
+
+-   OCS PET 준비기록은 `2016-12-31`까지 전달받음
+-   기록상으로는 `2007-12-14`부터 시작되지만 의미있는 시작은 `2010-01-04`부터임
+-   외부판독의 경우 준비기록에는 포함되지 않음
+
+```{r}
+#| label: readings-ocs-pacs-comparison
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-width: 10
+#| fig-height: 6
+#| eval: false
+
+log_info("readings_ocs 기간을 readings_pacs과 같도록 2003-05-12 ~ 2016-12-31으로 진행합니다.")
+readings_ocs_for_matching <- readings_ocs[ExamDate >= as.Date("2003-05-12") & ExamDate <= as.Date("2016-12-31")]
+n_readings_ocs_for_matching <- nrow(readings_ocs_for_matching)
+log_debug("OCS 데이터 (2003-05-12~2016-12-31): {n_readings_ocs_for_matching}건")
+
+
+# 중복된 PtID & ExamDate가 있는 경우를
+duplicated_readings_ocs_for_matching <- readings_ocs_for_matching[readings_ocs_for_matching[, .N, by = .(PtID, ExamDate)][N > 1], on = .(PtID, ExamDate)]
+log_debug("중복된 readings_ocs: {nrow(duplicated_readings_ocs_for_matching)}건")
+ocs_unique_keys <- unique(readings_ocs_for_matching[, .(PtID, ExamDate)])
+n_ocs_unique <- nrow(ocs_unique_keys)
+log_debug("OCS unique keys: {n_ocs_unique}")
+
+duplicated_readings_pacs <- readings_pacs[readings_pacs[, .N, by = .(PtID, ExamDate)][N > 1], on = .(PtID, ExamDate)]
+
+
+pacs_unique_keys <- unique(readings_pacs[, .(PtID, ExamDate)])
+n_pacs_unique <- nrow(pacs_unique_keys)
+log_debug("PACS unique keys: {n_pacs_unique}")
+
+both_keys_dt <- ocs_unique_keys[pacs_unique_keys, on = .(PtID, ExamDate), nomatch = 0]
+ocs_only <- ocs_unique_keys[!pacs_unique_keys, on = .(PtID, ExamDate)]
+pacs_only <- pacs_unique_keys[!ocs_unique_keys, on = .(PtID, ExamDate)]
+
+
+my_plot_monthly_counts(pacs_only, ExamDate, "PACS only")
+
+
+```
+
+## PACS와 OCS PET 검사기록 비교
+
+-   분석기간은 readings_pacs를 기준으로 `2003-05-12` \~ `2016-12-31`
+
+
+```{r}
+#| label: access-pet-preparations
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-width: 10
+#| fig-height: 6
+
+my_plot_monthly_counts(preparations_access, ExamDate, "Access 준비기록")
+
+```
+
+## Access PET 준비기록
+
+-   2000-01-25부터 Access에 PET 준비기록이 입력되기 시작함
+-   2009-08-07까지 입력되어 있음
+-   OCS에 준비기록이 입력된 후에서 연구용처럼 오더가 없는 경우는 Access로 준비/판독 되었음
+
+
+```{r}
+#| label: access-readings-data-cleaning
+#| echo: false
+#| message: false
+#| warning: false
+
+
+
+## ExamName에 PET|18F가 포함된 경우를 PET 판독으로 필터링
+readings_access <- readings_access[grepl("PET|18F", ExamName, ignore.case = TRUE)]
+
+
+## 사용자 정의 함수로 PtID 형식이 유효하지 않은 레코드만 추출
+readings_access_invalid <- my_filter_invalid_ptid(readings_access, "PtID")
+
+## [Hard-coded correction]
+readings_access[PtName == "정경옥", ExamName := "Liver"]
+readings_access[ExamDate == as.Date("1999-12-08") & PtName == "민병상", PtID := "814428"]
+readings_access[ExamDate == as.Date("2002-03-04") & PtName == "김봉주", ExamDate := as.Date("2002-02-28")]
+readings_access[ExamDate == as.Date("2004-03-28") & PtName == "전강진", ExamDate := as.Date("2004-03-26")]
+
+## 복구될 수 없는 결측치 제거
+preparations_access <- my_remove_invalid_rows(preparations_access)
+
+## 사용자 정의 함수로 PtID 형식이 유효하지 않은 레코드만 추출 
+preparations_access_invalid <- my_filter_invalid_ptid(preparations_access, "PtID")
+
+## [Hard-coded correction] PtID에 PtName이 온 오류를 수정
+preparations_access_invalid[PtID == "조성임", PtName := "조성임"]
+
+readings_access_invalid[
+  preparations_access[, .(PtName, ExamDate, PtID)],  # 참조 테이블에서 필요한 컬럼만 추출
+  on = .(PtName, ExamDate),                # 기준 키
+  PtID := i.PtID                           # 참조 테이블의 PtID로 덮어쓰기
+]
+
+## PtID 갱신: readings_access_invalid의 ID 기준으로
+readings_access[
+  readings_access_invalid[, .(ID, PtID)],  # ID와 새로운 PtID만 추출
+  on = .(ID),                              # ID 기준으로 join
+  PtID := i.PtID                           # 참조 테이블의 PtID로 갱신
+]
+
+```
+
+```{r}
+#| label: access-preparations-data-cleaning
+#| echo: false
+#| message: false
+#| warning: false
+
+preparations_access_invalid[
+  readings_access[, .(PtName, ExamDate, PtID)],  # 참조 테이블에서 필요한 컬럼만 추출
+  on = .(PtName, ExamDate),                # 기준 키
+  PtID := i.PtID                           # 참조 테이블의 PtID로 덮어쓰기
+]
+
+remove_chars <- "[`'oㅇ.b]"
+preparations_access_invalid[, PtID := gsub(remove_chars, "", PtID)]
+
+# 1. 날짜 범위 계산
+preparations_access_invalid[, `:=`(
+  date_min = ExamDate - 7,
+  date_max = ExamDate + 7
+)]
+
+# 2. 비이퀄 조인으로 ±7일 내 매칭
+preparations_access_invalid[
+  readings_access,
+  on = .(PtName, date_min <= ExamDate, date_max >= ExamDate),
+  PtID := i.PtID
+]
+
+
+## 하드코딩으로 오류 수정
+preparations_access_invalid[PtName == "이재숙", PtID := "T9804211"]
+preparations_access_invalid[PtName == "오경순", PtID := "908632"]
+preparations_access_invalid[PtName == "강영임", PtID := "938463"]
+preparations_access_invalid[PtName == "이선호", PtID := "951482"]
+preparations_access_invalid[PtName == "김제순", PtID := "949996"]
+preparations_access_invalid[PtName == "강종구", PtID := "885965"]
+preparations_access_invalid[PtName == "홍윤표", PtID := "533195"]
+preparations_access_invalid[PtName == "윤대일", PtID := "961200"]
+preparations_access_invalid[PtName == "정정용", PtID := "951484"]
+preparations_access[ID == "47402", ExamDate := as.Date("2007-07-31")]
+
+## PtID 갱신: readings_access_invalid의 ID 기준으로
+preparations_access[
+  preparations_access_invalid[, .(ID, PtID)],  # ID와 새로운 PtID만 추출
+  on = .(ID),                              # ID 기준으로 join
+  PtID := i.PtID                           # 참조 테이블의 PtID로 갱신
+]
+
+preparations_access_na_Ptname <-preparations_access[is.na(PtName)]
+preparations_access <-preparations_access[!is.na(PtName)]
+preparations_access_na_ExamDate <-preparations_access[is.na(ExamDate)]
+preparations_access <-preparations_access[!is.na(ExamDate)]
+
+preparations_access[, PtID := my_pad_ptid(PtID)]
+```
+
+```{r}
+#| label: access_ocs
+
+dt_ocs <- preparations_ocs[, .(PtID, ExamDate, 검사명)]
+dt_access <- preparations_access[, .(PtID, ExamDate)]
+
+# 2. 중복 제거 (중요)
+dt_ocs <- unique(dt_ocs)
+dt_access <- unique(dt_access)
+
+merged <- merge(
+  dt_access, dt_ocs,
+  by = c("PtID", "ExamDate"),
+  all = TRUE,   # 둘 중 하나라도 있으면 포함
+  suffixes = c(".access", ".ocs")
+)
+
+readings_keys <- unique(readings_pacs[, .(PtID, ExamDate)])
+merged_keys   <- unique(merged[, .(PtID, ExamDate)])
+
+only_in_readings <- readings_keys[!merged_keys, on = .(PtID, ExamDate)]
+readings_missing_preparation <- readings_pacs[only_in_readings, on = .(PtID, ExamDate)]
+
+
+
+my_plot_monthly_counts(readings_missing_preparation, ExamDate, "준비기록 없는 판독")
+
+
+```
+
+
+
+
+
+
+
+
+

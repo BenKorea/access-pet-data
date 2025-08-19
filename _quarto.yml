@@ -6,10 +6,10 @@ project:
     - "!*.md"
 
 website:
-  title: "Template"
+  title: "PET"
   navbar:
      left:
-      - text: "Blog"
+      - text: "Home"
         href: index.qmd
       - text: "About"
         href: posts/about.qmd

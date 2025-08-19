@@ -6,8 +6,11 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
+<meta name="author" content="김병일">
+<meta name="dcterms.date" content="2025-07-23">
+<meta name="description" content="Access 구현 핵의학과 PET 판독/준비기록">
 
-<title>Blog – Template</title>
+<title>Access PET DATA – PET</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -20,6 +23,40 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
 </style>
 
 
@@ -30,8 +67,6 @@ ul.task-list li input[type="checkbox"] {
 <script src="site_libs/quarto-search/fuse.min.js"></script>
 <script src="site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="./">
-<script src="site_libs/quarto-listing/list.min.js"></script>
-<script src="site_libs/quarto-listing/quarto-listing.js"></script>
 <script src="site_libs/quarto-html/quarto.js"></script>
 <script src="site_libs/quarto-html/popper.min.js"></script>
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
@@ -68,65 +103,7 @@ ul.task-list li input[type="checkbox"] {
     "search-label": "Search"
   }
 }</script>
-<script>
 
-  window.document.addEventListener("DOMContentLoaded", function (_event) {
-    const listingTargetEl = window.document.querySelector('#listing-listing .list');
-    if (!listingTargetEl) {
-      // No listing discovered, do not attach.
-      return; 
-    }
-
-    const options = {
-      valueNames: ['listing-date','listing-title','listing-author','listing-image','listing-description','listing-categories',{ data: ['index'] },{ data: ['categories'] },{ data: ['listing-date-sort'] },{ data: ['listing-file-modified-sort'] }],
-      
-      searchColumns: ["listing-date","listing-title","listing-author","listing-image","listing-description","listing-categories"],
-    };
-
-    window['quarto-listings'] = window['quarto-listings'] || {};
-    window['quarto-listings']['listing-listing'] = new List('listing-listing', options);
-
-    if (window['quarto-listing-loaded']) {
-      window['quarto-listing-loaded']();
-    }
-  });
-
-  window.addEventListener('hashchange',() => {
-    if (window['quarto-listing-loaded']) {
-      window['quarto-listing-loaded']();
-    }
-  })
-  </script>
-
-  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
-
-<script type="text/javascript">
-const typesetMath = (el) => {
-  if (window.MathJax) {
-    // MathJax Typeset
-    window.MathJax.typeset([el]);
-  } else if (window.katex) {
-    // KaTeX Render
-    var mathElements = el.getElementsByClassName("math");
-    var macros = [];
-    for (var i = 0; i < mathElements.length; i++) {
-      var texText = mathElements[i].firstChild;
-      if (mathElements[i].tagName == "SPAN") {
-        window.katex.render(texText.data, mathElements[i], {
-          displayMode: mathElements[i].classList.contains('display'),
-          throwOnError: false,
-          macros: macros,
-          fleqn: false
-        });
-      }
-    }
-  }
-}
-window.Quarto = {
-  typesetMath
-};
-</script>
 
 <link rel="stylesheet" href="styles/styles.css">
 </head>
@@ -134,12 +111,12 @@ window.Quarto = {
 <body class="nav-fixed">
 
 <div id="quarto-search-results"></div>
-  <header id="quarto-header" class="headroom fixed-top quarto-banner">
+  <header id="quarto-header" class="headroom fixed-top">
     <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a class="navbar-brand" href="./index.html">
-    <span class="navbar-title">Template</span>
+    <span class="navbar-title">PET</span>
     </a>
   </div>
             <div id="quarto-search" class="" title="Search"></div>
@@ -150,7 +127,7 @@ window.Quarto = {
             <ul class="navbar-nav navbar-nav-scroll me-auto">
   <li class="nav-item">
     <a class="nav-link active" href="./index.html" aria-current="page"> 
-<span class="menu-text">Blog</span></a>
+<span class="menu-text">Home</span></a>
   </li>  
   <li class="nav-item">
     <a class="nav-link" href="./posts/about.html"> 
@@ -164,99 +141,190 @@ window.Quarto = {
     </nav>
 </header>
 <!-- content -->
-<header id="title-block-header" class="quarto-title-block default page-columns page-full">
-  <div class="quarto-title-banner page-columns page-full">
-    <div class="quarto-title column-page-left">
-      <h1 class="title">Blog</h1>
-                      </div>
-  </div>
-    
-  
-  <div class="quarto-title-meta column-page-left">
-
-      
-    
-      
-    </div>
-    
-  
-  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-full page-navbar">
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-        
-    <h5 class="quarto-listing-category-title">Categories</h5><div class="quarto-listing-category category-default"><div class="category" data-category="">All <span class="quarto-category-count">(1)</span></div></div></div>
-<!-- main -->
-<main class="content quarto-banner-title-block column-page-left" id="quarto-document-content">
-
-
-
-
-
-
-
-
-
-<div class="quarto-listing quarto-listing-container-default" id="listing-listing">
-<div class="listing-actions-group">
-   <div class="input-group input-group-sm quarto-listing-sort">
-     <span class="input-group-text"><i class="bi bi-sort-down"></i></span>
-     <select id="listing-listing-sort" class="form-select" aria-label="Order By" onchange="window['quarto-listings']['listing-listing'].sort(this.options[this.selectedIndex].value, { order: this.options[this.selectedIndex].getAttribute('data-direction')})">
-       <option value="" disabled="" selected="" hidden="">Order By</option>
-       <option value="index" data-direction="asc">Default</option>
-         <option value="listing-title" data-direction="asc">
-          Title
-        </option>
-         <option value="listing-date-sort" data-direction="asc">
-          Date - Oldest
-        </option>
-         <option value="listing-date-sort" data-direction="desc">
-          Date - Newest
-        </option>
-         <option value="listing-author" data-direction="asc">
-          Author
-        </option>
-     </select>
-  </div>
-    <div class="input-group input-group-sm quarto-listing-filter">
-      <span class="input-group-text"><i class="bi bi-search"></i></span>
-      <input type="text" class="search form-control" placeholder="Filter">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#pet-판독준비기록-pacsocs-이관" id="toc-pet-판독준비기록-pacsocs-이관" class="nav-link active" data-scroll-target="#pet-판독준비기록-pacsocs-이관"><span class="header-section-number">1</span> PET 판독/준비기록 PACS/OCS 이관</a></li>
+  <li><a href="#ocs-pet-판독건수" id="toc-ocs-pet-판독건수" class="nav-link" data-scroll-target="#ocs-pet-판독건수"><span class="header-section-number">2</span> OCS PET 판독건수</a></li>
+  <li><a href="#pacs-pet-검사기록" id="toc-pacs-pet-검사기록" class="nav-link" data-scroll-target="#pacs-pet-검사기록"><span class="header-section-number">3</span> PACS PET 검사기록</a></li>
+  <li><a href="#ocs-pet-준비기록" id="toc-ocs-pet-준비기록" class="nav-link" data-scroll-target="#ocs-pet-준비기록"><span class="header-section-number">4</span> OCS PET 준비기록</a></li>
+  <li><a href="#pacs와-ocs-pet-검사기록-비교" id="toc-pacs와-ocs-pet-검사기록-비교" class="nav-link" data-scroll-target="#pacs와-ocs-pet-검사기록-비교"><span class="header-section-number">5</span> PACS와 OCS PET 검사기록 비교</a></li>
+  <li><a href="#access-pet-준비기록" id="toc-access-pet-준비기록" class="nav-link" data-scroll-target="#access-pet-준비기록"><span class="header-section-number">6</span> Access PET 준비기록</a></li>
+  </ul>
+</nav>
     </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Access PET DATA</h1>
 </div>
-<div class="list quarto-listing-default">
-<div class="quarto-post image-right" data-index="0" data-listing-date-sort="1755270000000" data-listing-file-modified-sort="1755512408687" data-listing-date-modified-sort="1755512408000" data-listing-reading-time-sort="1" data-listing-word-count-sort="141">
-<div class="thumbnail">
-<p><a href="./posts/about.html" class="no-external"></a></p><a href="./posts/about.html" class="no-external">
-<div class="listing-item-img-placeholder card-img-top" >&nbsp;</div>
-</a><p><a href="./posts/about.html" class="no-external"></a></p>
+
+<div>
+  <div class="description">
+    Access 구현 핵의학과 PET 판독/준비기록
+  </div>
 </div>
-<div class="body">
-<h3 class="no-anchor listing-title">
-<a href="./posts/about.html" class="no-external">R Python Quarto website template</a>
-</h3>
-<div class="listing-subtitle">
-<a href="./posts/about.html" class="no-external"></a>
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>김병일 </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">July 23, 2025</p>
+    </div>
+  </div>
+  
+    <div>
+    <div class="quarto-title-meta-heading">Modified</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date-modified">August 19, 2025</p>
+    </div>
+  </div>
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="pet-판독준비기록-pacsocs-이관" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="pet-판독준비기록-pacsocs-이관"><span class="header-section-number">1</span> PET 판독/준비기록 PACS/OCS 이관</h2>
+<p>원자력병원 핵의학과에 PET이 설치된 당시에 판독은 Microsoft사의 Access database에 감마와 PET 판독을 입력하는 시스템을 사용했습니다. Access 상의 최초 PET ExamDate는 <code>1997-07-16</code>입니다. 50년사에는 PET 기동식이 <code>1997-08-02</code>로 기록되어 있으며 날짜를 비교해보면 기동식 이전에 판독입력은 약 2주전부터 이미 시작되었습니다.</p>
+<p>2000년 경에 EMR (Electric Medical Record)과 함께 OCS(Order Communication System)이 도입되었습니다. 이 때부터 오더가 있는 공식적인 판독은 OCS에 입력을 하게 됩니다. 하지만 당시에는 연구목적의 PET 등은 오더가 대부분 없었기 때문에 이런 경우들은 Access에 입력을 하게 됩니다. 따라서 OCS상의 최초 판독일은 <code>2000-07-04</code>이지만 Access 판독은 <code>2009-07-09</code>까지 존재합니다.</p>
+<p>2003년 경에는 PACS가 도입됩니다. 이때부터 판독입력은 PACS에 직접 입력하게 되지만 결국은 OCS에도 저장되므로 판독기록의 보존이라는 측면에서는 차이가 없는셈입니다. 다만 Legacy PET Imaging Archive System 이외에 공식적인 PET(/CT) 저장이 새로 생겼다는 차이가 있습니다. 사실 Legacy PET Imaging Archive System은 magnetic tape, optical magnetic disk, CD 등으로 변모해왔지만 오랜시간이 경과하여 오류률이 높아서 실제 사용이 어렵기 때문에 PACS에 PET/CT image가 저장된다는 것은 상당한 장점이 있습니다.</p>
+<p>마지막으로 NM miniPACS에도 영상기록이 보존되어 있습니다. 공식적으로 저장되기 시작한 날짜는 확인이 필요합니다. 영상보관면에서는 PET sinogram은 아니지만 reconstructed low data가 저장되어 있으므로 그러한 장점이 있습니다. 한가지 명확하지 않은 것은 reseach PET data의 경우 NM miniPACS에 저장하는 것도 고려됩니다.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/ocs-pet-readings-1.png" class="img-fluid figure-img" width="960"></p>
+</figure>
 </div>
-<div class="listing-description">
-<a href="./posts/about.html" class="no-external">Template에 대한 설명</a>
 </div>
 </div>
-<div class="metadata">
-<a href="./posts/about.html" class="no-external">
-<div class="listing-date">
-Aug 16, 2025
+</section>
+<section id="ocs-pet-판독건수" class="level2" data-number="2">
+<h2 data-number="2" class="anchored" data-anchor-id="ocs-pet-판독건수"><span class="header-section-number">2</span> OCS PET 판독건수</h2>
+<ul>
+<li>2017년 경에 전산팀으로부터 받은 자료 (이하 동문)</li>
+<li><code>2000-07-04</code>부터 OCS에 PET 판독이 입력되기 시작함</li>
+<li>OCS PET 준비기록 자료가 <code>2016-12-31</code>까지여서 OCS PET 판독도 <code>2016-12-31</code>까지 분석 포함</li>
+<li>외부판독은 제외함.</li>
+<li>OCS PET 판독건수는 65558건</li>
+<li>2006~2007년이 비어있으며 전달받은 파일의 오류로 판단됨.</li>
+</ul>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/pacs-pet-readings-1.png" class="img-fluid figure-img" width="960"></p>
+</figure>
 </div>
-<div class="listing-author">
-BenKorea
-</div>
-</a>
 </div>
 </div>
+</section>
+<section id="pacs-pet-검사기록" class="level2" data-number="3">
+<h2 data-number="3" class="anchored" data-anchor-id="pacs-pet-검사기록"><span class="header-section-number">3</span> PACS PET 검사기록</h2>
+<ul>
+<li>2017년 경에 전산팀으로부터 받은 자료</li>
+<li><code>2003-05-12</code>부터 PACS에 PET 영상이 등록되기 시작함</li>
+<li>외부판독은 역시 제외함</li>
+<li>OCS상의 PET 준비기록이 <code>2016-12-31</code>까지 여서 판독기록도 <code>2016-12-31</code>까지만을 대상으로 함</li>
+<li>2006~2007년 데이터가 온전해 보임.</li>
+</ul>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/ocs-pet-preparations-1.png" class="img-fluid figure-img" width="960"></p>
+</figure>
 </div>
-<div class="listing-no-matching d-none">
-No matching items
 </div>
-</div></main> <!-- /main -->
+</div>
+</section>
+<section id="ocs-pet-준비기록" class="level2" data-number="4">
+<h2 data-number="4" class="anchored" data-anchor-id="ocs-pet-준비기록"><span class="header-section-number">4</span> OCS PET 준비기록</h2>
+<ul>
+<li>OCS PET 준비기록은 <code>2016-12-31</code>까지 전달받음</li>
+<li>기록상으로는 <code>2007-12-14</code>부터 시작되지만 의미있는 시작은 <code>2010-01-04</code>부터임</li>
+<li>외부판독의 경우 준비기록에는 포함되지 않음</li>
+</ul>
+</section>
+<section id="pacs와-ocs-pet-검사기록-비교" class="level2" data-number="5">
+<h2 data-number="5" class="anchored" data-anchor-id="pacs와-ocs-pet-검사기록-비교"><span class="header-section-number">5</span> PACS와 OCS PET 검사기록 비교</h2>
+<ul>
+<li>분석기간은 readings_pacs를 기준으로 <code>2003-05-12</code> ~ <code>2016-12-31</code></li>
+</ul>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/access-pet-preparations-1.png" class="img-fluid figure-img" width="960"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="access-pet-준비기록" class="level2" data-number="6">
+<h2 data-number="6" class="anchored" data-anchor-id="access-pet-준비기록"><span class="header-section-number">6</span> Access PET 준비기록</h2>
+<ul>
+<li>2000-01-25부터 Access에 PET 준비기록이 입력되기 시작함</li>
+<li>2009-08-07까지 입력되어 있음</li>
+<li>OCS에 준비기록이 입력된 후에서 연구용처럼 오더가 없는 경우는 Access로 준비/판독 되었음</li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>dt_ocs <span class="ot">&lt;-</span> preparations_ocs[, .(PtID, ExamDate, 검사명)]</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>dt_access <span class="ot">&lt;-</span> preparations_access[, .(PtID, ExamDate)]</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. 중복 제거 (중요)</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>dt_ocs <span class="ot">&lt;-</span> <span class="fu">unique</span>(dt_ocs)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>dt_access <span class="ot">&lt;-</span> <span class="fu">unique</span>(dt_access)</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>merged <span class="ot">&lt;-</span> <span class="fu">merge</span>(</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  dt_access, dt_ocs,</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"PtID"</span>, <span class="st">"ExamDate"</span>),</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">all =</span> <span class="cn">TRUE</span>,   <span class="co"># 둘 중 하나라도 있으면 포함</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">suffixes =</span> <span class="fu">c</span>(<span class="st">".access"</span>, <span class="st">".ocs"</span>)</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>readings_keys <span class="ot">&lt;-</span> <span class="fu">unique</span>(readings_pacs[, .(PtID, ExamDate)])</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>merged_keys   <span class="ot">&lt;-</span> <span class="fu">unique</span>(merged[, .(PtID, ExamDate)])</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>only_in_readings <span class="ot">&lt;-</span> readings_keys[<span class="sc">!</span>merged_keys, on <span class="ot">=</span> .(PtID, ExamDate)]</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>readings_missing_preparation <span class="ot">&lt;-</span> readings_pacs[only_in_readings, on <span class="ot">=</span> .(PtID, ExamDate)]</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a><span class="fu">my_plot_monthly_counts</span>(readings_missing_preparation, ExamDate, <span class="st">"준비기록 없는 판독"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/access_ocs-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+
+
+</section>
+
+</main> <!-- /main -->
 <script src="https://utteranc.es/client.js" repo="BenKorea/utterances-comments" issue-term="pathname" theme="preferred-color-scheme" crossorigin="anonymous" async="">
 </script>
 <script id="quarto-html-after-body" type="application/javascript">
