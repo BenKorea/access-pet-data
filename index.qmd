@@ -253,7 +253,7 @@ my_plot_monthly_counts(pacs_only, ExamDate, "PACS only")
 
 ```
 
-## PACS와 OCS PET 검사기록 비교
+## Access PET 준비기록
 
 -   분석기간은 readings_pacs를 기준으로 `2003-05-12` \~ `2016-12-31`
 
@@ -268,12 +268,11 @@ my_plot_monthly_counts(pacs_only, ExamDate, "PACS only")
 my_plot_monthly_counts(preparations_access, ExamDate, "Access 준비기록")
 
 ```
-
-## Access PET 준비기록
-
 -   2000-01-25부터 Access에 PET 준비기록이 입력되기 시작함
 -   2009-08-07까지 입력되어 있음
 -   OCS에 준비기록이 입력된 후에서 연구용처럼 오더가 없는 경우는 Access로 준비/판독 되었음
+
+
 
 ```{r}
 #| label: access-readings-data-cleaning
@@ -376,33 +375,88 @@ preparations_access <-preparations_access[!is.na(ExamDate)]
 preparations_access[, PtID := my_pad_ptid(PtID)]
 ```
 
+## 준비기록없는 판독 - 전기간
+
 ```{r}
-#| label: access_ocs
+#| label: all_readings_without_preparation
 #| echo: false
+#| message: false
+#| warning: false
+#| fig-width: 10
+#| fig-height: 6
 
-dt_ocs <- preparations_ocs[, .(PtID, ExamDate, 검사명)]
-dt_access <- preparations_access[, .(PtID, ExamDate)]
+# 1. 판독/검사기록 유니크 리스트 생성
+readings_access_keys <- unique(readings_access[, .(PtID, ExamDate)])
+readings_ocs_keys    <- unique(readings_ocs[, .(PtID, ExamDate)])
+readings_pacs_keys   <- unique(readings_pacs[, .(PtID, ExamDate)])
+all_readings_keys <- unique(rbindlist(list(readings_access_keys, readings_ocs_keys, readings_pacs_keys)))
 
-# 2. 중복 제거 (중요)
-dt_ocs <- unique(dt_ocs)
-dt_access <- unique(dt_access)
+# 2. 준비기록 유니크 리스트 생성
+preparations_access_keys <- unique(preparations_access[, .(PtID, ExamDate)])
+preparations_ocs_keys    <- unique(preparations_ocs[, .(PtID, ExamDate)])
+all_preparations_keys <- unique(rbindlist(list(preparations_access_keys, preparations_ocs_keys)))
 
-merged <- merge(
-  dt_access, dt_ocs,
-  by = c("PtID", "ExamDate"),
-  all = TRUE,   # 둘 중 하나라도 있으면 포함
-  suffixes = c(".access", ".ocs")
-)
+# 3. 판독은 있으나 준비기록이 없는 리스트 추출
+all_readings_without_preparation <- all_readings_keys[!all_preparations_keys, on = .(PtID, ExamDate)]
 
-readings_keys <- unique(readings_pacs[, .(PtID, ExamDate)])
-merged_keys   <- unique(merged[, .(PtID, ExamDate)])
+# 결과 확인
+log_info("준비기록 없는 판독/검사기록 건수: {nrow(all_readings_without_preparation)}")
+# head(all_readings_without_preparation)
 
-only_in_readings <- readings_keys[!merged_keys, on = .(PtID, ExamDate)]
-readings_missing_preparation <- readings_pacs[only_in_readings, on = .(PtID, ExamDate)]
+# 월별 시각화
+my_plot_monthly_counts(all_readings_without_preparation, ExamDate, "준비기록 없는 판독/검사기록")
+```
+
+## 2009년~2010년 판독/검사기록
+
+```{r}
+#| label: analyze_2009_2010_no_preparation
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-width: 10
+#| fig-height: 6
+
+# 2009년 데이터만 추출
+peak_2009_2010 <- all_readings_without_preparation[
+  ExamDate >= as.Date("2009-01-01") & ExamDate <= as.Date("2010-12-31")
+]
+
+# 월별 시각화만 출력
+my_plot_monthly_counts(peak_2009_2010, ExamDate, "2009~2010년 준비기록 없는 판독/검사기록")
+```
+
+## 2009년  7월~2010년2월 날짜별 건수 시각화
+
+```{r}
+#| label: plot_daily_2009_07_to_2010_02_no_preparation
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-width: 12
+#| fig-height: 6
 
 
+# 2009년 7월~2010년 2월 기간 추출
+daily_peak <- all_readings_without_preparation[
+  ExamDate >= as.Date("2009-07-01") & ExamDate <= as.Date("2010-02-28")
+]
 
-my_plot_monthly_counts(readings_missing_preparation, ExamDate, "준비기록 없는 판독")
+# 날짜별 건수 집계
+library(ggplot2)
+dt_daily <- daily_peak[, .N, by = ExamDate]
 
+ggplot(dt_daily, aes(x = ExamDate, y = N)) +
+  geom_col(fill = "steelblue") +
+  labs(title = "2009년 8월~2010년 1월 준비기록 없는 판독/검사기록 (날짜별)",
+       x = "ExamDate", y = "건수") +
+  theme_minimal() +
+  scale_x_date(date_breaks = "1 week", date_labels = "%Y-%m-%d") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+
+```{r the_end}
 
 ```
+

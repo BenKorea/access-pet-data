@@ -8,6 +8,7 @@
 renv/
 _freeze/
 .quarto/
+dics/
 # cache/        # (Quarto render 등 임시파일 폴더가 따로 있으면 추가)
 # *.Rproj         # 프로젝트 협업/공개용이면 포함, 개인 실험용이면 제외
 # .Rprofile       # 자동화 코드/공용 환경이면 포함, 민감정보 있으면 주의
